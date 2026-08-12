@@ -1,35 +1,174 @@
-const toggle=document.querySelector('.menu-toggle'),links=document.querySelector('.nav-links');
-if(toggle&&links){toggle.addEventListener('click',()=>{const open=links.classList.toggle('open');toggle.setAttribute('aria-expanded',String(open))});document.querySelectorAll('.nav-links a').forEach(a=>a.addEventListener('click',()=>links.classList.remove('open')))}
-const year=document.getElementById('year');if(year)year.textContent=new Date().getFullYear();
-
-/* Claude-inspired interactive evidence landscape. The detail panel has its own reserved lower band so it never covers the Health Economics node. */
-const visual=document.querySelector('.hero-visual');
-if(visual){
-const streams=[
-{id:'primary',n:'01',title:'PRIMARY RESEARCH',kicker:'GENERATE EVIDENCE',intro:'Generating original evidence to answer clinically relevant questions in patients and populations.',work:['Designed and led observational studies using healthcare databases including JMDC, MDV and IHD in Japan.','Developed study protocols for real-world studies, including J-ORBIT and paediatric allergy research.','Applied epidemiologic methods to cohort design, outcomes research and population-level questions.']},
-{id:'rwe',n:'02',title:'REAL-WORLD EVIDENCE',kicker:'UNDERSTAND PATIENTS',intro:'Using real-world data to understand treatment patterns, outcomes, healthcare utilisation and populations outside controlled trials.',work:['Extensive work with Japanese healthcare databases and real-world evidence programmes.','Developed protocols, cohorts, outcomes and analytical questions for RWE studies.','Worked across cardiometabolic, musculoskeletal, immunology and healthcare-utilisation questions.']},
-{id:'synthesis',n:'03',title:'EVIDENCE SYNTHESIS',kicker:'SYNTHESISE KNOWLEDGE',intro:'Turning a fragmented literature into structured, decision-relevant evidence.',work:['Led and contributed to systematic reviews, targeted literature reviews, meta-analyses and network meta-analyses.','Completed 11 targeted literature reviews, with additional evidence synthesis programmes ongoing.','Experience with Cochrane methods, comparative effectiveness and evidence-generation questions for HTA.']},
-{id:'economics',n:'04',title:'HEALTH ECONOMICS',kicker:'UNDERSTAND VALUE',intro:'Evaluating value by connecting outcomes, costs, quality of life and resource use.',work:['Applied health-economic thinking across cost-effectiveness, cost-utility and budget-impact questions.','Integrated epidemiology, clinical outcomes and humanistic evidence to support value assessment.','Worked on economic and outcomes questions spanning obesity, osteoarthritis, cardiometabolic disease and healthcare systems.']},
-{id:'hta',n:'05',title:'HTA & VALUE',kicker:'EVALUATE & DEMONSTRATE',intro:'Bringing evidence together for health technology assessment, reimbursement and market-access questions.',work:['Current work spans SLR, TLR, meta-analysis and global value-demonstration dossier development.','Experience with HTA frameworks and evidence expectations including NICE, CADTH and PBAC.','Translate comparative clinical, epidemiologic and economic evidence into payer-relevant value narratives.']},
-{id:'decision',n:'06',title:'DECISION EVIDENCE',kicker:'TRANSLATE EVIDENCE',intro:'Making evidence useful for real healthcare, reimbursement and access decisions.',work:['Connect evidence generation and synthesis to reimbursement, access and healthcare decision needs.','Build evidence narratives around burden, comparative value and unmet need.','Bring epidemiology, RWE, synthesis, health economics and HTA into one decision-oriented perspective.']}
+// ===== Data =====
+const STREAMS_DATA = [
+  {id:'primary', n:'01', title:'PRIMARY RESEARCH', kicker:'GENERATE EVIDENCE', intro:'Generating original evidence to answer clinically relevant questions in patients and populations.', work:['Designed and led observational studies using healthcare databases including JMDC, MDV and IHD in Japan.','Developed study protocols for real-world studies, including J-ORBIT and paediatric allergy research.','Applied epidemiologic methods to cohort design, outcomes research and population-level questions.']},
+  {id:'rwe', n:'02', title:'REAL-WORLD EVIDENCE', kicker:'UNDERSTAND PATIENTS', intro:'Using real-world data to understand treatment patterns, outcomes, healthcare utilisation and populations outside controlled trials.', work:['Extensive work with Japanese healthcare databases and real-world evidence programmes.','Developed protocols, cohorts, outcomes and analytical questions for RWE studies.','Worked across cardiometabolic, musculoskeletal, immunology and healthcare-utilisation questions.']},
+  {id:'synthesis', n:'03', title:'EVIDENCE SYNTHESIS', kicker:'SYNTHESISE KNOWLEDGE', intro:'Turning a fragmented literature into structured, decision-relevant evidence.', work:['Led and contributed to systematic reviews, targeted literature reviews, meta-analyses and network meta-analyses.','Completed 11 targeted literature reviews, with additional evidence synthesis programmes ongoing.','Experience with Cochrane methods, comparative effectiveness and evidence-generation questions for HTA.']},
+  {id:'economics', n:'04', title:'HEALTH ECONOMICS', kicker:'UNDERSTAND VALUE', intro:'Evaluating value by connecting outcomes, costs, quality of life and resource use.', work:['Applied health-economic thinking across cost-effectiveness, cost-utility and budget-impact questions.','Integrated epidemiology, clinical outcomes and humanistic evidence to support value assessment.','Worked on economic and outcomes questions spanning obesity, osteoarthritis, cardiometabolic disease and healthcare systems.']},
+  {id:'hta', n:'05', title:'HTA & VALUE', kicker:'EVALUATE & DEMONSTRATE', intro:'Bringing evidence together for health technology assessment, reimbursement and market-access questions.', work:['Current work spans SLR, TLR, meta-analysis and global value-demonstration dossier development.','Experience with HTA frameworks and evidence expectations including NICE, CADTH and PBAC.','Translate comparative clinical, epidemiologic and economic evidence into payer-relevant value narratives.']},
+  {id:'decision', n:'06', title:'DECISION EVIDENCE', kicker:'TRANSLATE EVIDENCE', intro:'Making evidence useful for real healthcare, reimbursement and access decisions.', work:['Connect evidence generation and synthesis to reimbursement, access and healthcare decision needs.','Build evidence narratives around burden, comparative value and unmet need.','Bring epidemiology, RWE, synthesis, health economics and HTA into one decision-oriented perspective.']}
 ];
-const pos=['top','rt','rb','bottom','lb','lt'];
-visual.innerHTML='';visual.classList.add('interactive-evidence-visual');
-const scene=document.createElement('div');scene.className='evidence-scene';scene.innerHTML='<div class="evidence-orbit oa"></div><div class="evidence-orbit ob"></div><div class="cross c1"></div><div class="cross c2"></div><div class="portrait-ring evidence-portrait"><img src="https://avatars.githubusercontent.com/u/172473538?v=4" alt="Dr. Ambrish Singh"></div><div class="center-label"><span>EVIDENCE</span><strong>FROM GENERATION<br>TO DECISION</strong></div><div class="scene-caption">EXPLORE THE EVIDENCE LANDSCAPE</div><div class="scene-hint">Hover or tap a node<br>to explore</div>';
-const panel=document.createElement('div');panel.className='evidence-detail';panel.innerHTML='<div class="detail-lead"><div class="detail-index">01</div><div><div class="detail-kicker"></div><h3></h3><p></p></div></div><div class="detail-work"><div class="detail-work-title">My work in this stream</div><ul></ul></div><button class="detail-close" aria-label="Close details">×</button>';visual.appendChild(scene);visual.appendChild(panel);
-const select=id=>{const s=streams.find(x=>x.id===id);if(!s)return;panel.classList.remove('collapsed');visual.querySelectorAll('.evidence-node').forEach(n=>n.classList.toggle('active',n.dataset.id===id));panel.querySelector('.detail-index').textContent=s.n;panel.querySelector('.detail-kicker').textContent=s.kicker;panel.querySelector('h3').textContent=s.title;panel.querySelector('.detail-lead p').textContent=s.intro;panel.querySelector('ul').innerHTML=s.work.map(x=>'<li>'+x+'</li>').join('')};
-streams.forEach((s,i)=>{const b=document.createElement('button');b.type='button';b.className='evidence-node '+pos[i];b.dataset.id=s.id;b.innerHTML='<span>'+s.n+'</span><strong>'+s.title+'</strong><small>'+s.kicker+'</small>';b.addEventListener('mouseenter',()=>select(s.id));b.addEventListener('focus',()=>select(s.id));b.addEventListener('click',()=>select(s.id));scene.appendChild(b)});
-panel.querySelector('.detail-close').addEventListener('click',()=>{panel.classList.add('collapsed');visual.querySelectorAll('.evidence-node').forEach(n=>n.classList.remove('active'))});select('primary');
-visual.addEventListener('mousemove',e=>{if(innerWidth<901)return;const r=visual.getBoundingClientRect();scene.style.setProperty('--mx',((e.clientX-r.left)/r.width-.5)*10+'px');scene.style.setProperty('--my',((e.clientY-r.top)/r.height-.5)*8+'px')});visual.addEventListener('mouseleave',()=>{scene.style.setProperty('--mx','0px');scene.style.setProperty('--my','0px')});
-const css=document.createElement('style');css.textContent=`
-.interactive-evidence-visual{height:700px!important;display:block!important;position:relative!important;overflow:visible!important}.evidence-scene{position:absolute;left:0;right:0;top:0;bottom:245px!important;--mx:0px;--my:0px;transform:translate3d(var(--mx),var(--my),0);transition:transform .35s ease}.evidence-orbit{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);border:1px solid #ddd5c9;border-radius:50%;pointer-events:none}.oa{width:430px;height:430px;animation:spin 25s linear infinite}.ob{width:520px;height:310px;transform:translate(-50%,-50%) rotate(28deg);animation:spinr 32s linear infinite}.cross{position:absolute;left:50%;top:46%;width:430px;height:1px;background:repeating-linear-gradient(90deg,#ddd5c9 0 4px,transparent 4px 9px);opacity:.75}.c1{transform:translate(-50%,-50%) rotate(30deg)}.c2{transform:translate(-50%,-50%) rotate(-30deg)}.evidence-portrait{position:absolute!important;left:50%;top:46%;transform:translate(-50%,-50%);width:150px!important;height:150px!important;min-width:150px!important;min-height:150px!important;padding:7px!important;z-index:3;background:#f7f4ed!important;box-shadow:0 18px 50px rgba(45,38,30,.15)!important}.evidence-portrait img{width:100%;height:100%;object-fit:cover;border-radius:50%;object-position:center top}.center-label{position:absolute;left:50%;top:46%;transform:translate(-50%,92px);text-align:center;z-index:4;white-space:nowrap;line-height:1.05}.center-label span{display:block;font-size:8px;letter-spacing:2px;color:#a67b5b;font-weight:700;margin-bottom:6px}.center-label strong{font-family:'Playfair Display',serif;font-size:15px;color:#20252b}.scene-caption{position:absolute;left:50%;top:3px;transform:translateX(-50%);font-size:9px;letter-spacing:2.3px;color:#a67b5b;font-weight:700;white-space:nowrap}.scene-hint{position:absolute;right:-5px;top:46%;transform:translateY(-50%);font-size:9px;line-height:1.5;color:#7c817f;border-left:1px solid #cfc7ba;padding-left:12px}.evidence-node{position:absolute;width:150px;min-height:88px;padding:14px 16px;background:rgba(255,255,255,.97);border:1px solid #d8d1c6;text-align:left;cursor:pointer;z-index:30;box-shadow:0 12px 28px rgba(40,35,29,.07);transition:.25s;animation:float 5s ease-in-out infinite}.evidence-node:hover,.evidence-node:focus-visible,.evidence-node.active{border-color:#a67b5b;box-shadow:0 16px 36px rgba(40,35,29,.12);transform:translateY(-5px)}.evidence-node span{font-size:8px;color:#a67b5b}.evidence-node strong{display:block;font-family:'Playfair Display',serif;font-size:17px;line-height:1.03;color:#20252b;margin:5px 0}.evidence-node small{display:block;font-size:7px;letter-spacing:1.3px;color:#8a6a54;font-weight:700}.top{left:50%;top:28px;transform:translateX(-50%)}.rt{right:0;top:138px}.rb{right:0;bottom:66px}.bottom{left:50%;bottom:10px;transform:translateX(-50%)}.lb{left:0;bottom:66px}.lt{left:0;top:138px}.top:hover,.top:focus-visible,.top.active,.bottom:hover,.bottom:focus-visible,.bottom.active{transform:translateX(-50%) translateY(-5px)}.evidence-detail{position:absolute;left:0;right:0;bottom:0;min-height:205px;background:rgba(255,255,255,.99);border:1px solid #d9d2c7;border-radius:12px;padding:22px 54px 20px 26px;display:grid;grid-template-columns:235px 1fr;gap:28px;box-shadow:0 18px 42px rgba(40,35,29,.09);z-index:40;transition:opacity .25s,transform .25s}.detail-lead{display:flex;gap:14px;border-right:1px solid #e3ddd4;padding-right:22px}.detail-index{width:30px;height:30px;border-radius:50%;background:#a67b5b;color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;flex:none}.detail-kicker{font-size:8px;letter-spacing:1.7px;color:#a67b5b;font-weight:700}.detail-lead h3{font-family:'Playfair Display',serif;font-size:22px;line-height:1.05;margin:5px 0 8px;color:#20252b}.detail-lead p{font-size:11px;line-height:1.5;color:#72797d}.detail-work-title{font-size:11px;font-weight:700;color:#9b6f4f;margin-bottom:8px}.detail-work ul{margin:0;padding-left:17px;display:grid;gap:5px}.detail-work li{font-size:10.5px;line-height:1.45;color:#51595e}.detail-close{position:absolute;right:16px;top:13px;border:0;background:transparent;font-size:19px;color:#5c6265;cursor:pointer}.detail-close:hover{color:#a67b5b}.evidence-detail.collapsed{opacity:0;transform:translateY(12px);pointer-events:none}
-@keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}@keyframes spinr{to{transform:translate(-50%,-50%) rotate(-360deg)}}@keyframes float{0%,100%{margin-top:0}50%{margin-top:-4px}}
-@media(max-width:1100px){.evidence-node{width:135px}.scene-hint{display:none}.evidence-detail{grid-template-columns:210px 1fr;gap:20px}}
-@media(max-width:900px){.interactive-evidence-visual{height:780px!important}.evidence-scene{bottom:285px!important}.oa{width:390px;height:390px}.ob{width:440px;height:280px}.evidence-node{width:128px;min-height:80px;padding:11px 12px}.evidence-node strong{font-size:14px}.rt{right:2px;top:105px}.rb{right:2px;bottom:60px}.lt{left:2px;top:105px}.lb{left:2px;bottom:60px}.top{top:10px}.bottom{bottom:28px}.evidence-portrait{width:125px!important;height:125px!important;min-width:125px!important;min-height:125px!important}.center-label{transform:translate(-50%,78px)}.evidence-detail{min-height:225px;grid-template-columns:1fr;gap:12px;padding:18px 35px 18px 20px}.detail-lead{border-right:0;border-bottom:1px solid #e3ddd4;padding:0 0 12px}}
-@media(max-width:620px){.interactive-evidence-visual{height:920px!important}.evidence-scene{bottom:330px!important}.oa{width:310px;height:310px}.ob{width:350px;height:230px}.evidence-node{width:112px;min-height:72px;padding:9px 10px}.evidence-node strong{font-size:12px}.evidence-node small{font-size:6px}.rt{right:0;top:80px}.rb{right:0;bottom:35px}.lt{left:0;top:80px}.lb{left:0;bottom:35px}.top{top:0}.bottom{bottom:5px}.evidence-portrait{width:100px!important;height:100px!important;min-width:100px!important;min-height:100px!important}.center-label{transform:translate(-50%,63px)}.center-label strong{font-size:11px}.scene-caption{font-size:7px;letter-spacing:1.5px}.evidence-detail{min-height:300px}.detail-lead h3{font-size:19px}.detail-lead p,.detail-work li{font-size:9.5px}}
-`;document.head.appendChild(css);
+
+const CAPABILITIES_DATA = [
+  { n: '01', example: 'Cochrane systematic review and meta-analysis of Boswellia for osteoarthritis; colchicine SLR now cited in the 2025 Egyptian and 2024 Chinese clinical guidelines.' },
+  { n: '02', example: 'Treatment patterns and healthcare resource use in paediatric atopic dermatitis using Japanese claims data, and real-world obesity management outcomes via the J-ORBIT database.' },
+  { n: '03', example: 'Cost-utility analysis of yoga vs strengthening exercise for knee osteoarthritis, and a cost-utility analysis of regorafenib for hepatocellular carcinoma post-sorafenib.' },
+  { n: '04', example: 'Longitudinal analysis of knee MRI biomarkers and symptoms over 6–9 years; contributions to Global Burden of Disease estimates for osteoarthritis and low back pain.' },
+  { n: '05', example: 'Randomised trials of turmeric extract and of yoga vs strengthening exercise for knee osteoarthritis, and SF-6D health-state utility research on knee symptoms.' },
+  { n: '06', example: 'Associate/guest editor roles, Cochrane Living Evidence Network guidance contribution, and peer review for ISPOR, ISPE, HTAi and CADTH conferences.' }
+];
+const CAP_TITLES = {'01':'Evidence synthesis','02':'Real-world evidence','03':'Health economics & HTA','04':'Epidemiology & population health','05':'Clinical & patient-centred evidence','06':'Evidence strategy & leadership'};
+
+const SCALE_STORIES = {
+  gbd: "Contributions to Global Burden of Disease programmes covering osteoarthritis, low back pain, diabetes, cardiovascular disease, tobacco, ageing, cancer and other diseases and risk factors — work that scales from a single dataset into estimates used across 204 countries and territories.",
+  policy: "Contributed to the iDSI HTA Toolkit, designed to help health ministries and government agencies build sustainable local HTA mechanisms for priority-setting in health — extending evidence generation into practical government tools.",
+  guidelines: "Research contributions supporting WHO Healthy Housing guidance and the World Federation of Hemophilia management guidelines. A systematic review and meta-analysis of colchicine for osteoarthritis was cited in the 2025 Egyptian clinical practice guidelines for knee osteoarthritis and the 2024 Chinese guidelines for gout management, directly informing clinical recommendations.",
+  ebm: "Cochrane author and contributor, including guidance from the Cochrane Living Evidence Network on living systematic reviews, and contributor to evidence summaries through the Joanna Briggs Institute — work that shapes how other researchers produce and update evidence."
+};
+const SCALE_LABELS = {gbd:'GLOBAL BURDEN OF DISEASE', policy:'HEALTH SYSTEMS', guidelines:'GLOBAL HEALTH GUIDANCE', ebm:'EVIDENCE-BASED MEDICINE'};
+
+const TOOLKIT_DETAILS = {
+  'MDV (Japan)': 'Japanese hospital claims database used in real-world treatment-pattern and healthcare-utilisation research.',
+  'CDAH (Australia)': 'Longitudinal Australian cohort data used in knee MRI biomarker and symptom research.',
+  'KLoSA (Korea)': 'Korean Longitudinal Study of Ageing data behind research on metabolic syndrome trajectories and knee pain.',
+  'JMDC (Japan)': 'Japanese claims database used for paediatric atopic dermatitis treatment-pattern research.',
+  'DistillerSR': 'Systematic review screening and data extraction for Cochrane and other evidence syntheses.',
+  'Covidence': 'Systematic review management used across evidence synthesis projects.',
+  'RevMan': "Cochrane's meta-analysis software, used in the Boswellia and colchicine systematic reviews.",
+  'TreeAge': 'Decision-analytic and cost-effectiveness modelling, including the regorafenib HCC and yoga vs exercise cost-utility analyses.'
+};
+const HTA_DETAILS = {
+  'NICE': 'Cost-effectiveness models built to NICE reference-case methods — QALYs, EQ-5D-5L, discounting — as in the yoga vs strengthening exercise cost-utility analysis.',
+  'CADTH': 'Evidence and value-dossier structures aligned to CADTH submission methods for musculoskeletal and oncology cost-effectiveness questions.',
+  'PBAC': 'Cost-utility analysis of regorafenib for hepatocellular carcinoma structured for PBAC-aligned reimbursement evidence.'
+};
+
+// ===== State =====
+let activeStream = 'primary';
+let activeCapability = '01';
+let activeScale = 'gbd';
+let activeToolkit = null;
+let activeAgency = null;
+let pubFilter = 'all';
+let streamTimer, capTimer, scaleTimer;
+
+// ===== Evidence landscape (hero) =====
+function renderStreamDetail(id){
+  const s = STREAMS_DATA.find(x => x.id === id);
+  document.getElementById('detailNum').textContent = s.n;
+  document.getElementById('detailKicker').textContent = s.kicker;
+  document.getElementById('detailTitle').textContent = s.title;
+  document.getElementById('detailIntro').textContent = s.intro;
+  const list = document.getElementById('detailWork');
+  list.innerHTML = s.work.map(w => `<li>${w}</li>`).join('');
+}
+function setActiveStream(id, restart){
+  activeStream = id;
+  document.querySelectorAll('.evidence-node').forEach(n => n.classList.toggle('active', n.dataset.stream === id));
+  renderStreamDetail(id);
+  if (restart) startStreamCycle();
+}
+function startStreamCycle(){
+  clearInterval(streamTimer);
+  streamTimer = setInterval(() => {
+    const idx = STREAMS_DATA.findIndex(s => s.id === activeStream);
+    const next = STREAMS_DATA[(idx + 1) % STREAMS_DATA.length];
+    setActiveStream(next.id, false);
+  }, 4000);
 }
 
-/* Put Twitter in the Contact links as requested, not only in the footer. */
-const contactDetails=document.querySelector('.contact-details');
-if(contactDetails&&!contactDetails.querySelector('.twitter-link')){const row=contactDetails.querySelector('.social-links')||(()=>{const r=document.createElement('div');r.className='social-links';contactDetails.appendChild(r);return r})();const t=document.createElement('a');t.className='twitter-link';t.href='https://twitter.com/ambrishagastya';t.target='_blank';t.rel='noopener';t.textContent='Twitter / @ambrishagastya';row.appendChild(t)}
+// ===== Capabilities =====
+function setActiveCapability(n, restart){
+  activeCapability = n;
+  document.querySelectorAll('.cap-card').forEach(c => c.classList.toggle('active', c.dataset.cap === n));
+  document.getElementById('capExampleLabel').textContent = 'EXAMPLE — ' + CAP_TITLES[n];
+  document.getElementById('capExampleText').textContent = CAPABILITIES_DATA.find(c => c.n === n).example;
+  if (restart) startCapCycle();
+}
+function startCapCycle(){
+  clearInterval(capTimer);
+  capTimer = setInterval(() => {
+    const idx = CAPABILITIES_DATA.findIndex(c => c.n === activeCapability);
+    const next = CAPABILITIES_DATA[(idx + 1) % CAPABILITIES_DATA.length];
+    setActiveCapability(next.n, false);
+  }, 4500);
+}
+
+// ===== Impact / scale cards =====
+function setActiveScale(id, restart){
+  activeScale = id;
+  document.querySelectorAll('.scale-card').forEach(c => c.classList.toggle('active', c.dataset.scale === id));
+  document.getElementById('scaleDetailLabel').textContent = SCALE_LABELS[id];
+  document.getElementById('scaleDetailText').textContent = SCALE_STORIES[id];
+  if (restart) startScaleCycle();
+}
+function startScaleCycle(){
+  clearInterval(scaleTimer);
+  const ids = Object.keys(SCALE_LABELS);
+  scaleTimer = setInterval(() => {
+    const idx = ids.indexOf(activeScale);
+    setActiveScale(ids[(idx + 1) % ids.length], false);
+  }, 4500);
+}
+
+// ===== Recognition: toolkit / agency pills =====
+function toggleToolkit(name){
+  activeToolkit = activeToolkit === name ? null : name;
+  document.querySelectorAll('.toolkit-pill').forEach(p => p.classList.toggle('active', p.dataset.tool === activeToolkit));
+  document.getElementById('toolkitDetail').textContent = activeToolkit ? TOOLKIT_DETAILS[activeToolkit] : '';
+}
+function toggleAgency(name){
+  activeAgency = activeAgency === name ? null : name;
+  document.querySelectorAll('.agency-pill').forEach(p => p.classList.toggle('active', p.dataset.agency === activeAgency));
+  document.getElementById('agencyDetail').textContent = activeAgency ? HTA_DETAILS[activeAgency] : '';
+}
+
+// ===== Publications =====
+function setPubFilter(cat){
+  pubFilter = cat;
+  document.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.filter === cat));
+  document.querySelectorAll('.pub-card').forEach(card => {
+    card.classList.toggle('visible', cat === 'all' || card.dataset.category === cat);
+  });
+}
+function togglePub(card){
+  card.classList.toggle('expanded');
+  card.querySelector('.pub-toggle-icon').textContent = card.classList.contains('expanded') ? '–' : '↗';
+}
+
+// ===== Init =====
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  document.querySelectorAll('.evidence-node').forEach(n => {
+    n.addEventListener('click', () => setActiveStream(n.dataset.stream, true));
+  });
+  setActiveStream(activeStream, false);
+  startStreamCycle();
+
+  document.querySelectorAll('.cap-card').forEach(c => {
+    c.addEventListener('click', () => setActiveCapability(c.dataset.cap, true));
+  });
+  setActiveCapability(activeCapability, false);
+  startCapCycle();
+
+  document.querySelectorAll('.scale-card').forEach(c => {
+    c.addEventListener('click', () => setActiveScale(c.dataset.scale, true));
+  });
+  setActiveScale(activeScale, false);
+  startScaleCycle();
+
+  document.querySelectorAll('.toolkit-pill').forEach(p => {
+    p.addEventListener('click', () => toggleToolkit(p.dataset.tool));
+  });
+  document.querySelectorAll('.agency-pill').forEach(p => {
+    p.addEventListener('click', () => toggleAgency(p.dataset.agency));
+  });
+
+  document.querySelectorAll('.chip').forEach(c => {
+    c.addEventListener('click', () => setPubFilter(c.dataset.filter));
+  });
+  setPubFilter('all');
+  document.querySelectorAll('.pub-card').forEach(card => {
+    card.addEventListener('click', () => togglePub(card));
+  });
+});
