@@ -135,6 +135,36 @@ function togglePub(card){
   card.querySelector('.pub-toggle-icon').textContent = card.classList.contains('expanded') ? '–' : '↗';
 }
 
+// ===== Visible research identity links =====
+function addResearchIdentityLinks(){
+  const container = document.querySelector('.about-links');
+  if (!container || container.dataset.identityEnhanced === 'true') return;
+  container.dataset.identityEnhanced = 'true';
+
+  const links = [
+    ['University of Tasmania','https://discover.utas.edu.au/Ambrish.Singh'],
+    ['Google Scholar','https://scholar.google.com/citations?user=s-DOTWcAAAAJ&hl=en'],
+    ['ResearchGate','https://www.researchgate.net/profile/Ambrish-Singh-3?ev=hdr_xprf'],
+    ['Scopus','https://www.scopus.com/pages/authors/57214875932'],
+    ['Research profile','/profile.html']
+  ];
+
+  links.forEach(([label, url]) => {
+    const a = document.createElement('a');
+    a.href = url;
+    a.textContent = label + ' ↗';
+    if (url.startsWith('http')) { a.target = '_blank'; a.rel = 'noopener'; }
+    container.appendChild(a);
+  });
+
+  const style = document.createElement('style');
+  style.textContent = `
+    .about-links{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+    .about-links a{white-space:nowrap}
+  `;
+  document.head.appendChild(style);
+}
+
 // ===== Init =====
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('year').textContent = new Date().getFullYear();
@@ -171,4 +201,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.pub-card').forEach(card => {
     card.addEventListener('click', () => togglePub(card));
   });
+
+  addResearchIdentityLinks();
 });
